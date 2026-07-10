@@ -12,5 +12,4 @@ const env = {
   },
 };
 
-console.log(env.port)
 export default env
