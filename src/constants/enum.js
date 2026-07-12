@@ -1,0 +1,50 @@
+export const GENDER = {
+  MALE: "MALE",
+  FEMALE: "FEMALE",
+  OTHER: "OTHER",
+};
+
+export const USER_ROLE = {
+  USER: "USER",
+  ADMIN: "ADMIN",
+};
+
+//Trip model enum's
+
+export const TRIP_STATUS = {
+  PLANNED: "PLANNED",
+  ONGOING: "ONGOING",
+  COMPLETED: "COMPLETED",
+  CANCELLED: "CANCELLED",
+};
+
+export const TRIP_VISIBILITY = {
+  PUBLIC: "PUBLIC",
+  PRIVATE: "PRIVATE",
+};
+
+export const REGISTRATION_STATUS = {
+  OPEN: "OPEN",
+  CLOSED: "CLOSED",
+};
+
+// Trip_member
+
+export const TRIP_MEMBER_ROLE = {
+  ORGANIZER: "ORGANIZER",
+  MODERATOR: "MODERATOR",
+  MEMBER: "MEMBER",
+};
+
+export const TRIP_MEMBER_STATUS = {
+  ACTIVE: "ACTIVE",
+  LEFT: "LEFT",
+  REMOVED: "REMOVED",
+};
+
+export const REQUEST_STATUS = {
+  PENDING: "PENDING",
+  APPROVED: "APPROVED",
+  REJECTED: "REJECTED",
+  CANCELLED: "CANCELLED"
+};
