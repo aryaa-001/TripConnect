@@ -20,17 +20,30 @@ class JoinRequestRepository {
     });
   }
 
-  async findPendingRequestByTrip(tripId) {
-    return await JoinRequest.findOne({
+  async findPendingRequestsByTrip(tripId) {
+    return await JoinRequest.findAll({
       where: {
         tripId,
         status: REQUEST_STATUS.PENDING,
       },
+
+      attributes: {
+        exclude: ["userId", "reviewedBy"],
+      },
+
+      include: [
+        {
+          association: "requester",
+          attributes: ["id", "firstName", "lastName", "profileImageUrl", "bio"],
+        },
+      ],
+
+      order: [["createdAt", "ASC"]],
     });
   }
 
-  async update(joinRequest) {
-    return await joinRequest.save();
+  async update(joinRequest, options = {}) {
+    return await joinRequest.save(options);
   }
 }
 

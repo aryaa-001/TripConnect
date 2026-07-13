@@ -1,4 +1,4 @@
-import AppError from "../errors/AppError.js";
+import AppError from "../../errors/AppError.js";
 
 const authorize = (...allowedRoles) => {
   return (req, res, next) => {

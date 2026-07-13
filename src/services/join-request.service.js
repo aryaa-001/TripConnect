@@ -1,3 +1,5 @@
+import sequelize from "../config/db.js";
+
 import joinRequestRepository from "../repositories/join-request.repository.js";
 import tripRepository from "../repositories/trip.repository.js";
 import tripMemberRepository from "../repositories/trip-member.repository.js";
@@ -8,6 +10,7 @@ import {
   REGISTRATION_STATUS,
   TRIP_STATUS,
   TRIP_MEMBER_STATUS,
+  TRIP_MEMBER_ROLE,
 } from "../constants/enum.js";
 
 class JoinRequestService {
@@ -64,6 +67,78 @@ class JoinRequestService {
     });
 
     return request;
+  }
+
+  async getPendingRequests(tripId, user) {
+    const trip = await tripRepository.findById(tripId);
+
+    if (!trip) {
+      throw new AppError("Trip not found", 404);
+    }
+
+    return await joinRequestRepository.findPendingRequestsByTrip(tripId);
+  }
+
+  async approve(joinRequest, reviewerId) {
+    console.log(reviewerId)
+    console.log(joinRequest)
+    if (joinRequest.status !== REQUEST_STATUS.PENDING) {
+      throw new AppError("Only pending requests can be approved", 400);
+    }
+
+    const trip = await tripRepository.findById(joinRequest.tripId);
+
+    if (!trip) {
+      throw new AppError("Trip not found", 404);
+    }
+
+    const activeMembers = await tripMemberRepository.countActiveMembers(
+      trip.id,
+    );
+
+    if (activeMembers >= trip.maxMembers) {
+      throw new AppError("Trip is already full", 400);
+    }
+
+    const existingMember = await tripMemberRepository.findActiveMember(
+      trip.id,
+      joinRequest.userId,
+    );
+
+    if (existingMember) {
+      throw new AppError("User is already a member", 409);
+    }
+
+    const transaction = await sequelize.transaction();
+
+    try {
+      await tripMemberRepository.create(
+        {
+          tripId: trip.id,
+          userId: joinRequest.userId,
+          tripRole: TRIP_MEMBER_ROLE.MEMBER,
+          status: TRIP_MEMBER_STATUS.ACTIVE,
+        },
+        {
+          transaction,
+        },
+      );
+
+      joinRequest.status = REQUEST_STATUS.APPROVED;
+      joinRequest.reviewedBy = reviewerId;
+      joinRequest.reviewedAt = new Date();
+
+      await joinRequestRepository.update(joinRequest, {
+        transaction,
+      });
+
+      await transaction.commit();
+
+      return joinRequest;
+    } catch (error) {
+      await transaction.rollback();
+      throw error;
+    }
   }
 }
 

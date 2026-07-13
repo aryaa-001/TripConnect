@@ -17,6 +17,30 @@ class JoinRequestController {
       data: joinRequest,
     });
   }
+
+  async getPendingRequests(req, res) {
+    const { tripId } = req.params;
+
+    const requests = await joinRequestService.getPendingRequests(tripId);
+
+    return res.status(200).json({
+      success: true,
+      data: requests,
+    });
+  }
+
+  async approve(req, res) {
+    const joinRequest = await joinRequestService.approve(
+      req.joinRequest,
+      req.user.id,
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Join request approved successfully",
+      data: joinRequest,
+    });
+  }
 }
 
 export default new JoinRequestController();

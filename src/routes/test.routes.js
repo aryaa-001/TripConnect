@@ -1,6 +1,6 @@
 import { Router } from "express";
 import authenticate from "../middlewares/authenticate.middleware.js";
-import authorize from "../middlewares/authorize.middleware.js";
+import authorize from "../middlewares/authorization/platform-authorize.middleware.js";
 import { USER_ROLE } from "../constants/enum.js";
 
 const router = Router();
