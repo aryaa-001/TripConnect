@@ -1,4 +1,4 @@
-import { body } from "express-validator";
+import { body, param } from "express-validator";
 import validate from "../middlewares/validate.js";
 
 export const creatCityValidator = [
@@ -12,6 +12,12 @@ export const creatCityValidator = [
   body("state").trim().notEmpty().withMessage("State is required"),
 
   body("country").optional().trim(),
+
+  validate,
+];
+
+export const findCityValidator = [
+  param("id").isUUID().withMessage("Invalid id"),
 
   validate,
 ];

@@ -1,4 +1,4 @@
-import { body } from "express-validator";
+import { body, param } from "express-validator";
 import validate from "../middlewares/validate.js";
 import { TRIP_VISIBILITY } from "../constants/enum.js";
 
@@ -74,3 +74,11 @@ export const createTripValidator = [
 
   validate,
 ];
+
+export const findTripValidator= [
+    param("id")
+    .isUUID()
+    .withMessage("Invalid id"),
+
+    validate
+]

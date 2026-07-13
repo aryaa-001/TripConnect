@@ -10,6 +10,10 @@ class CityRepository {
       where: { name },
     });
   }
+
+  async findAll(){
+    return await City.findAll();
+  }
 }
 
 export default new CityRepository();

@@ -9,6 +9,16 @@ class CityService {
     }
     return await cityRepository.create(data);
   }
+
+  async getAllCities(id) {
+    const cities = await cityRepository.findAll();
+
+    if (!cities) {
+      throw new AppError("Cities not found", 404);
+    }
+
+    return city;
+  }
 }
 
 export default new CityService();

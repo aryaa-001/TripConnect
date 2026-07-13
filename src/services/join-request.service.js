@@ -80,8 +80,7 @@ class JoinRequestService {
   }
 
   async approve(joinRequest, reviewerId) {
-    console.log(reviewerId)
-    console.log(joinRequest)
+
     if (joinRequest.status !== REQUEST_STATUS.PENDING) {
       throw new AppError("Only pending requests can be approved", 400);
     }

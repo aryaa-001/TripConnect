@@ -7,7 +7,10 @@ import joinRequestAuthorize from "../middlewares/authorization/join-request-auth
 
 import tripController from "../controllers/trip.controlle.js";
 import joinRequestController from "../controllers/join-request.controller.js";
-import { createTripValidator } from "../validators/trip.validator.js";
+import {
+  createTripValidator,
+  findTripValidator,
+} from "../validators/trip.validator.js";
 import {
   createJoinRequestValidator,
   getPendingRequestsValidator,
@@ -18,6 +21,13 @@ import { USER_ROLE, TRIP_MEMBER_ROLE } from "../constants/enum.js";
 
 const router = Router();
 
+router.get(
+  "/",
+  authenticate,
+  platformAuthorize(USER_ROLE.ADMIN),
+  tripController.getAllTrips,
+);
+
 router.post(
   "/create",
   authenticate,
@@ -25,8 +35,10 @@ router.post(
   tripController.create,
 );
 
+router.get("/:id", authenticate, findTripValidator, tripController.getById);
+
 router.post(
-  "/:tripId/join-requests",
+  "/:tripId/join-request",
   authenticate,
   createJoinRequestValidator,
   joinRequestController.create,
@@ -42,7 +54,7 @@ router.get(
 );
 
 router.patch(
-  "/pending-join-requests/:id/approve",
+  "/pending-join-request/:id/approve",
   authenticate,
   approveJoinRequestValidator,
   platformAuthorize(USER_ROLE.ADMIN, USER_ROLE.USER),

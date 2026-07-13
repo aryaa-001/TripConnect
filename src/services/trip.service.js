@@ -39,6 +39,26 @@ class TripService {
       throw error;
     }
   }
+
+  async getById(id) {
+    const trip = await tripRepository.findById(id);
+
+    if (!trip) {
+      throw new AppError("Trip not found", 404);
+    }
+
+    return trip;
+  }
+
+  async getAllTrips() {
+    const trips = await tripRepository.gettAll();
+
+    if (!trips) {
+      throw new AppError("Trips not found", 404);
+    }
+
+    return trips;
+  }
 }
 
 export default new TripService();

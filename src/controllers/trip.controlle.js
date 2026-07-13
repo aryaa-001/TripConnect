@@ -10,6 +10,27 @@ class TripController {
       data: trip,
     });
   }
+
+  async getById(req, res) {
+    const { id } = req.params;
+
+    const trip = await tripService.getById(id);
+
+    return res.status(200).json({
+      success: true,
+      data: trip,
+    });
+  }
+
+  async getAllTrips(req, res){
+    const trips = await tripService.getAllTrips();
+
+    return res.status(200).json({
+        success: true,
+        message: "All cities fetched successfsully",
+        data: trips
+    })
+  }
 }
 
-export default new TripController;
+export default new TripController();

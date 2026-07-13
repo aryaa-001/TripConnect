@@ -8,6 +8,10 @@ class TripRepository {
   async findById(tripId) {
     return await Trip.findByPk(tripId);
   }
+
+  async gettAll(){
+    return await Trip.findAll();
+  }
 }
 
 export default new TripRepository();
