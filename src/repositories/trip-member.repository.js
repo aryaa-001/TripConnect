@@ -16,6 +16,24 @@ class TripMemberRepository {
     });
   }
 
+  async findActiveMembersByTrip(tripId) {
+    return await TripMember.findAll({
+      where: { tripId, status: TRIP_MEMBER_STATUS.ACTIVE },
+      attributes: ["tripRole", "status", "createdAt"],
+      include: {
+        association: "user",
+        attributes: ["id", "firstName", "lastName", "profileImageUrl", "bio"],
+        order: [["createdAt", "ASC"]],
+      },
+    });
+  }
+
+  async findByIdAndTrip(tripId, memberId) {
+    return await TripMember.findOne({
+      where: { id: memberId, tripId },
+    });
+  }
+
   async countActiveMembers(tripId) {
     return await TripMember.count({
       where: {
@@ -23,6 +41,10 @@ class TripMemberRepository {
         status: TRIP_MEMBER_STATUS.ACTIVE,
       },
     });
+  }
+
+  async update(tripMember, options = {}) {
+    return await tripMember.save(options);
   }
 }
 
