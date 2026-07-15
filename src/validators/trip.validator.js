@@ -75,10 +75,59 @@ export const createTripValidator = [
   validate,
 ];
 
-export const findTripValidator= [
-    param("id")
-    .isUUID()
-    .withMessage("Invalid id"),
+export const findTripValidator = [
+  param("id").isUUID().withMessage("Invalid id"),
 
-    validate
-]
+  validate,
+];
+
+
+export const updateTripValidator = [
+  body("title")
+    .optional()
+    .trim()
+    .isLength({ min: 3, max: 100 })
+    .withMessage("Title must be between 3 and 100 characters"),
+
+  body("description")
+    .optional()
+    .trim()
+    .isLength({ min: 10, max: 1000 })
+    .withMessage("Description must be between 10 and 1000 characters"),
+
+  body("destination")
+    .optional()
+    .trim()
+    .isLength({ min: 2, max: 100 })
+    .withMessage("Destination must be between 2 and 100 characters"),
+
+  body("startDate").optional().isISO8601().withMessage("Invalid start date"),
+
+  body("endDate")
+    .optional({ nullable: true })
+    .isISO8601()
+    .withMessage("Invalid end date"),
+
+  body("meetingPoint")
+    .optional({ nullable: true })
+    .trim()
+    .isLength({ min: 3, max: 255 })
+    .withMessage("Meeting point must be between 3 and 255 characters"),
+
+  body("maxMembers")
+    .optional()
+    .isInt({ min: 2 })
+    .withMessage("Maximum members must be at least 2"),
+
+  body("registrationDeadline")
+    .optional()
+    .isISO8601()
+    .withMessage("Invalid registration deadline"),
+
+  body("estimatedCostPerHead")
+    .optional({ nullable: true })
+    .isFloat({ min: 0 })
+    .withMessage("Estimated cost cannot be negative"),
+
+  validate,
+];

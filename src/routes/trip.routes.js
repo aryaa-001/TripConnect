@@ -10,14 +10,15 @@ import joinRequestController from "../controllers/join-request.controller.js";
 import {
   createTripValidator,
   findTripValidator,
+  updateTripValidator,
 } from "../validators/trip.validator.js";
 import {
   createJoinRequestValidator,
-  getPendingRequestsValidator,
-  approveJoinRequestValidator,
+  rejectJoinRequestValidator,
 } from "../validators/join-request.validator.js";
 
 import { USER_ROLE, TRIP_MEMBER_ROLE } from "../constants/enum.js";
+import { globalUuidValidator } from "../validators/comman/uuid.validator.js";
 
 const router = Router();
 
@@ -35,19 +36,31 @@ router.post(
   tripController.create,
 );
 
-router.get("/:id", authenticate, findTripValidator, tripController.getById);
+router.get("/:id", authenticate, globalUuidValidator, tripController.getById);
 
+//Update trip info using trip Id
+router.patch(
+  "/:id",
+  authenticate,
+  globalUuidValidator,
+  updateTripValidator,
+  platformAuthorize(USER_ROLE.ADMIN, USER_ROLE.USER),
+  tripAuthorize(TRIP_MEMBER_ROLE.ORGANIZER, TRIP_MEMBER_ROLE.MODERATOR),
+  tripController.update,
+);
+
+// join-request flow (make request, see all request, reject, approve, cancelled by user)
 router.post(
-  "/:tripId/join-request",
+  "/:id/join-request",
   authenticate,
   createJoinRequestValidator,
   joinRequestController.create,
 );
 
 router.get(
-  "/:tripId/pending-join-requests",
+  "/:id/pending-join-requests",
   authenticate,
-  getPendingRequestsValidator,
+  globalUuidValidator,
   platformAuthorize(USER_ROLE.ADMIN, USER_ROLE.USER),
   tripAuthorize(TRIP_MEMBER_ROLE.ORGANIZER, TRIP_MEMBER_ROLE.MODERATOR),
   joinRequestController.getPendingRequests,
@@ -56,10 +69,26 @@ router.get(
 router.patch(
   "/pending-join-request/:id/approve",
   authenticate,
-  approveJoinRequestValidator,
+  globalUuidValidator,
   platformAuthorize(USER_ROLE.ADMIN, USER_ROLE.USER),
   joinRequestAuthorize(TRIP_MEMBER_ROLE.ORGANIZER, TRIP_MEMBER_ROLE.MODERATOR),
   joinRequestController.approve,
+);
+
+router.patch(
+  "/join-request/:id/reject",
+  authenticate,
+  rejectJoinRequestValidator,
+  platformAuthorize(USER_ROLE.ADMIN, USER_ROLE.USER),
+  joinRequestAuthorize(TRIP_MEMBER_ROLE.ORGANIZER, TRIP_MEMBER_ROLE.MODERATOR),
+  joinRequestController.reject,
+);
+
+router.patch(
+  "/join-request/:id/cancel",
+  authenticate,
+  globalUuidValidator,
+  joinRequestController.cancel,
 );
 
 export default router;

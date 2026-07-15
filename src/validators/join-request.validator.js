@@ -9,18 +9,18 @@ export const createJoinRequestValidator = [
     .trim()
     .isLength({ max: 500 })
     .withMessage("Message cannot exceed 500 characters"),
+  param("id").isUUID().withMessage("Invalid uuid id"),
 
   validate,
 ];
 
-export const getPendingRequestsValidator = [
-  param("tripId").isUUID().withMessage("Invalid trip id"),
-
-  validate,
-];
-
-export const approveJoinRequestValidator = [
-  param("id").isUUID().withMessage("Invalid join request id"),
+export const rejectJoinRequestValidator = [
+  body("responseMessage")
+    .optional()
+    .trim()
+    .isLength({ max: 500 })
+    .withMessage("Response message cannot exceed 500 characters"),
+  param("id").isUUID().withMessage("Invalid uuid id"),
 
   validate,
 ];

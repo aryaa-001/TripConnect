@@ -12,6 +12,7 @@ import {
   TRIP_MEMBER_STATUS,
   TRIP_MEMBER_ROLE,
 } from "../constants/enum.js";
+import JoinRequest from "../models/join-request.model.js";
 
 class JoinRequestService {
   async requestToJoin(tripId, userId, message) {
@@ -80,7 +81,6 @@ class JoinRequestService {
   }
 
   async approve(joinRequest, reviewerId) {
-
     if (joinRequest.status !== REQUEST_STATUS.PENDING) {
       throw new AppError("Only pending requests can be approved", 400);
     }
@@ -138,6 +138,39 @@ class JoinRequestService {
       await transaction.rollback();
       throw error;
     }
+  }
+
+  async reject(joinRequest, reviewerId, responseMessage) {
+    if (joinRequest.status !== REQUEST_STATUS.PENDING) {
+      throw new AppError("Only pending requests can be rejected", 400);
+    }
+
+    joinRequest.status = REQUEST_STATUS.APPROVED;
+    joinRequest.reviewedBy = reviewerId;
+    joinRequest.reviewedAt = new Date();
+    joinRequest.responseMessage = responseMessage ?? null;
+
+    return await joinRequestRepository.update(joinRequest);
+  }
+
+  async cancel(joinRequestId, userId) {
+    const joinRequest = await joinRequestRepository.findById(joinRequestId);
+
+    if (!joinRequest) {
+      throw new AppError("Join request not found", 404);
+    }
+
+    if (joinRequest.userId !== userId) {
+      throw new AppError("You can only cancel your own join request", 403);
+    }
+
+    if (joinRequest.status !== REQUEST_STATUS.PENDING) {
+      throw new AppError("Only pending requests can be cancelled", 400);
+    }
+
+    joinRequest.status = REQUEST_STATUS.CANCELLED;
+
+    return await joinRequestRepository.update(joinRequest);
   }
 }
 

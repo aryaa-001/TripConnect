@@ -15,10 +15,10 @@ const tripAuthorize = (...allowedRoles) => {
       return next();
     }
 
-    const { tripId } = req.params;
+    const { id } = req.params;
 
     const tripMember = await tripMemberRepository.findActiveMember(
-      tripId,
+      id,
       user.id,
     );
     if (!tripMember) {

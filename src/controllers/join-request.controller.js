@@ -41,6 +41,37 @@ class JoinRequestController {
       data: joinRequest,
     });
   }
+
+  async reject(req, res) {
+    const { responseMessage } = req.body;
+
+    const joinRequest = await joinRequestService.reject(
+      req.joinRequest,
+      req.user.id,
+      responseMessage,
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Join request rejected successfully",
+      data: joinRequest,
+    });
+  }
+
+  async cancel(req, res) {
+    const joinRequestId = req.params;
+
+    const joinRequest = await joinRequestService.cancel(
+      joinRequestId,
+      req.user.id,
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Join request cancelled successfully",
+      data: joinRequest,
+    });
+  }
 }
 
 export default new JoinRequestController();

@@ -12,6 +12,10 @@ class TripRepository {
   async gettAll(){
     return await Trip.findAll();
   }
+
+  async update(trip) {
+    return await trip.save();
+}
 }
 
 export default new TripRepository();

@@ -22,14 +22,26 @@ class TripController {
     });
   }
 
-  async getAllTrips(req, res){
+  async getAllTrips(req, res) {
     const trips = await tripService.getAllTrips();
 
     return res.status(200).json({
-        success: true,
-        message: "All cities fetched successfsully",
-        data: trips
-    })
+      success: true,
+      message: "All cities fetched successfsully",
+      data: trips,
+    });
+  }
+
+  async update(req, res) {
+    const { id } = req.params;
+    console.log(id)
+    const updatedTrip = await tripService.update(id, req.body);
+
+    return res.status(200).json({
+      success: true,
+      message: "Trip updated successfully",
+      data: updatedTrip,
+    });
   }
 }
 
