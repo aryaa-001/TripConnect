@@ -23,12 +23,12 @@ class TripController {
   }
 
   async getAllTrips(req, res) {
-    const trips = await tripService.getAllTrips();
+    const result = await tripService.getAllTrips(req.query);
 
     return res.status(200).json({
       success: true,
-      message: "All cities fetched successfsully",
-      data: trips,
+      data: result.trips,
+      pagination: result.pagination,
     });
   }
 

@@ -51,14 +51,41 @@ class TripService {
     return trip;
   }
 
-  async getAllTrips() {
-    const trips = await tripRepository.gettAll();
+  async getAllTrips(query) {
+    const page = query.page === undefined ? 1 : Number(query.page);
+    const limit = query.limit === undefined ? 1 : Number(query.limit);
 
-    if (!trips) {
-      throw new AppError("Trips not found", 404);
+    if (Number.isNaN(page)) {
+      throw new AppError("Page must be a number", 400);
+    }
+    if (Number.isNaN(limit)) {
+      throw new AppError("Limit must be a number", 400);
     }
 
-    return trips;
+    if (page < 1) {
+      throw new AppError("Page must be greater than 0", 400);
+    }
+
+    if (limit < 1) {
+      throw new AppError("Limit must be greater than 0", 400);
+    }
+
+    const offset = (page - 1) * limit;
+    const { rows, count } = await tripRepository.getAll({
+      limit,
+      offset,
+    });
+
+    return {
+      trips: rows,
+
+      pagination: {
+        page,
+        limit,
+        totalRecords: count,
+        totalPages: Math.ceil(count / limit),
+      },
+    };
   }
 
   async update(tripId, updateData) {

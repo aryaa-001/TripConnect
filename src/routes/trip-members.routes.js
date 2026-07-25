@@ -6,7 +6,7 @@ import tripAuthorize from "../middlewares/authorization/trip-authorize.middlewar
 
 import { USER_ROLE, TRIP_MEMBER_ROLE } from "../constants/enum.js";
 
-import { removeMemberValidator } from "../validators/trip-member.validator.js";
+import { tripIdandMemberIdValidator } from "../validators/trip-member.validator.js";
 import { globalUuidValidator } from "../validators/comman/uuid.validator.js";
 
 import tripMemberController from "../controllers/trip-member.controller.js";
@@ -40,12 +40,30 @@ router.delete(
 );
 
 router.delete(
-  "/trip/:tripId/members/:memberId",
+  "/trip/:tripId/members/:tripMemberId",
   authenicate,
-  removeMemberValidator,
+  tripIdandMemberIdValidator,
   platformAuthorize(USER_ROLE.ADMIN, USER_ROLE.USER),
   tripAuthorize(TRIP_MEMBER_ROLE.ORGANIZER, TRIP_MEMBER_ROLE.MODERATOR),
   tripMemberController.removeMember,
+);
+
+router.patch(
+  "/trip/:tripId/members/:tripMemberId/promote",
+  authenicate,
+  tripIdandMemberIdValidator,
+  platformAuthorize(USER_ROLE.ADMIN, USER_ROLE.USER),
+  tripAuthorize(TRIP_MEMBER_ROLE.ORGANIZER),
+  tripMemberController.promoteMember,
+);
+
+router.patch(
+  "/trip/:tripId/members/:tripMemberId/demote",
+  authenicate,
+  tripIdandMemberIdValidator,
+  platformAuthorize(USER_ROLE.ADMIN, USER_ROLE.USER),
+  tripAuthorize(TRIP_MEMBER_ROLE.ORGANIZER),
+  tripMemberController.demoteMember,
 );
 
 export default router;

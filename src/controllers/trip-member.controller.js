@@ -12,11 +12,11 @@ class TripMemberController {
   }
 
   async removeMember(req, res) {
-    const { tripId, memberId } = req.params;
+    const { tripId, tripMemberId } = req.params;
 
     const removedMember = await tripMemberService.removeMember(
       tripId,
-      memberId,
+      tripMemberId,
       req.tripMember,
     );
 
@@ -34,6 +34,33 @@ class TripMemberController {
       success: true,
       message: "You have left the trip successfully",
       data: leftMember,
+    });
+  }
+
+  async promoteMember(req, res) {
+    const { tripId, tripMemberId } = req.params;
+
+    const moderator = await tripMemberService.promoteMember(
+      tripId,
+      tripMemberId,
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Member has been promoted to moderator successfully",
+      data: moderator,
+    });
+  }
+
+  async demoteMember(req, res) {
+    const { tripId, tripMemberId } = req.params;
+
+    const member = await tripMemberService.demoteMember(tripId, tripMemberId);
+
+    res.status(200).json({
+      success: true,
+      message: "Moderator has been demoted to member successfully",
+      data: member,
     });
   }
 }

@@ -16,7 +16,6 @@ const tripAuthorize = (...allowedRoles) => {
     }
 
     const tripId = req.params.id ?? req.params.tripId;
-    console.log(tripId);
 
     const tripMember = await tripMemberRepository.findActiveMember(
       tripId,

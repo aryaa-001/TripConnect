@@ -15,16 +15,25 @@ class TripMemberService {
     return await tripMemberRepository.findActiveMembersByTrip(tripId);
   }
 
-  async removeMember(tripId, memberId, reviewer) {
-    const member = await tripMemberRepository.findByIdAndTrip(tripId, memberId);
+  async getActiveTripMember(tripMemberId, tripId) {
+    const tripMember = await tripMemberRepository.findByIdAndTrip(
+      tripMemberId,
+      tripId,
+    );
 
-    if (!member) {
+    if (!tripMember) {
       throw new AppError("Trip member not found", 404);
     }
 
-    if (member.status !== TRIP_MEMBER_STATUS.ACTIVE) {
-      throw new AppError("Member is no longer active", 400);
+    if (tripMember.status !== TRIP_MEMBER_STATUS.ACTIVE) {
+      throw new AppError("Trip member is not active", 400);
     }
+
+    return tripMember;
+  }
+
+  async removeMember(tripId, tripMemberId, reviewer) {
+    const member = await this.getActiveTripMember(tripId, tripMemberId);
 
     if (member.tripRole === TRIP_MEMBER_ROLE.ORGANIZER) {
       throw new AppError("Organizer cannot be removed", 403);
@@ -60,6 +69,38 @@ class TripMemberService {
     tripMember.status = TRIP_MEMBER_STATUS.LEFT;
 
     return await tripMemberRepository.update(tripMember);
+  }
+
+  async promoteMember(tripId, tripMemberId) {
+    const member = await this.getActiveTripMember(tripMemberId, tripId);
+
+    if (member.tripRole === TRIP_MEMBER_ROLE.ORGANIZER) {
+      throw new AppError("Organizer cannot be a moderator", 403);
+    }
+
+    if (member.tripRole === TRIP_MEMBER_ROLE.MODERATOR) {
+      throw new AppError("Member is already a moderator", 403);
+    }
+
+    member.tripRole = TRIP_MEMBER_ROLE.MODERATOR;
+
+    return await tripMemberRepository.update(member);
+  }
+
+  async demoteMember(tripId, tripMemberId) {
+    const member = await this.getActiveTripMember(tripMemberId, tripId);
+
+    if (member.tripRole === TRIP_MEMBER_ROLE.ORGANIZER) {
+      throw new AppError("Organizer can not be demoted", 403);
+    }
+
+    if (member.tripRole === TRIP_MEMBER_ROLE.MEMBER) {
+      throw new AppError("Member is already a regular member", 400);
+    }
+
+    member.tripRole = TRIP_MEMBER_ROLE.MEMBER;
+
+    return await tripMemberRepository.update(member);
   }
 }
 

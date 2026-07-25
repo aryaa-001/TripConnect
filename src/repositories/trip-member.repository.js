@@ -28,9 +28,9 @@ class TripMemberRepository {
     });
   }
 
-  async findByIdAndTrip(tripId, memberId) {
+  async findByIdAndTrip(tripMemberId, tripId ) {
     return await TripMember.findOne({
-      where: { id: memberId, tripId },
+      where: { id: tripMemberId, tripId },
     });
   }
 
