@@ -1,5 +1,6 @@
 import { JoinRequest } from "../models/index.js";
 import { REQUEST_STATUS } from "../constants/enum.js";
+import { USER_PUBLIC_ATTRIBUTES } from "../constants/model-attributes.js";
 
 class JoinRequestRepository {
   async create(requestData) {
@@ -8,6 +9,21 @@ class JoinRequestRepository {
 
   async findById(id) {
     return await JoinRequest.findByPk(id);
+  }
+
+  async findDetailsById(id) {
+    return await JoinRequest.findByPk(id, {
+      attributes: {
+        exclude: ["userId", "reviewedBy"],
+      },
+
+      include: [
+        {
+          association: "requester",
+          attributes: USER_PUBLIC_ATTRIBUTES,
+        },
+      ],
+    });
   }
 
   async findPendingRequest(tripId, userId) {
@@ -34,7 +50,7 @@ class JoinRequestRepository {
       include: [
         {
           association: "requester",
-          attributes: ["id", "firstName", "lastName", "profileImageUrl", "bio"],
+          attributes: USER_PUBLIC_ATTRIBUTES,
         },
       ],
 

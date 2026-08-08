@@ -3,6 +3,8 @@ import sequelize from "../config/db.js";
 import joinRequestRepository from "../repositories/join-request.repository.js";
 import tripRepository from "../repositories/trip.repository.js";
 import tripMemberRepository from "../repositories/trip-member.repository.js";
+import { toJoinRequestResponse } from "../mappers/index.js";
+
 import AppError from "../errors/AppError.js";
 
 import {
@@ -12,9 +14,9 @@ import {
   TRIP_MEMBER_STATUS,
   TRIP_MEMBER_ROLE,
 } from "../constants/enum.js";
-import JoinRequest from "../models/join-request.model.js";
 
 class JoinRequestService {
+  
   async requestToJoin(tripId, userId, message) {
     const trip = await tripRepository.findById(tripId);
 
@@ -50,7 +52,7 @@ class JoinRequestService {
 
     if (pendingRequest) {
       throw new AppError(
-        "You already have a pending request for this Trip",
+        "You already have a pending request for this trip",
         409,
       );
     }
@@ -67,17 +69,24 @@ class JoinRequestService {
       message,
     });
 
-    return request;
+    const createdRequest = await joinRequestRepository.findDetailsById(
+      request.id,
+    );
+
+    return toJoinRequestResponse(createdRequest);
   }
 
-  async getPendingRequests(tripId, user) {
+  async getPendingRequests(tripId) {
     const trip = await tripRepository.findById(tripId);
 
     if (!trip) {
       throw new AppError("Trip not found", 404);
     }
 
-    return await joinRequestRepository.findPendingRequestsByTrip(tripId);
+    const requests =
+      await joinRequestRepository.findPendingRequestsByTrip(tripId);
+
+    return requests.map(toJoinRequestResponse);
   }
 
   async approve(joinRequest, reviewerId) {
@@ -133,7 +142,11 @@ class JoinRequestService {
 
       await transaction.commit();
 
-      return joinRequest;
+      const updatedRequest = await joinRequestRepository.findDetailsById(
+        joinRequest.id,
+      );
+
+      return toJoinRequestResponse(updatedRequest);
     } catch (error) {
       await transaction.rollback();
       throw error;
@@ -145,12 +158,18 @@ class JoinRequestService {
       throw new AppError("Only pending requests can be rejected", 400);
     }
 
-    joinRequest.status = REQUEST_STATUS.APPROVED;
+    joinRequest.status = REQUEST_STATUS.REJECTED;
     joinRequest.reviewedBy = reviewerId;
     joinRequest.reviewedAt = new Date();
     joinRequest.responseMessage = responseMessage ?? null;
 
-    return await joinRequestRepository.update(joinRequest);
+    await joinRequestRepository.update(joinRequest);
+
+    const updatedRequest = await joinRequestRepository.findDetailsById(
+      joinRequest.id,
+    );
+
+    return toJoinRequestResponse(updatedRequest);
   }
 
   async cancel(joinRequestId, userId) {
@@ -170,7 +189,13 @@ class JoinRequestService {
 
     joinRequest.status = REQUEST_STATUS.CANCELLED;
 
-    return await joinRequestRepository.update(joinRequest);
+    await joinRequestRepository.update(joinRequest);
+
+    const updatedRequest = await joinRequestRepository.findDetailsById(
+      joinRequest.id,
+    );
+
+    return toJoinRequestResponse(updatedRequest);
   }
 }
 

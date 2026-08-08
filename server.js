@@ -6,11 +6,16 @@ import "./src/models/index.js";
 const startServer = async () => {
   try {
     await sequelize.authenticate();
+
     await sequelize.sync({
-        alter: true
+      alter: true,
     });
-    console.log("✅ Database connected sucessfully.");
-    console.log("✅ Database syncronized.");
+
+    console.log("✅ Database connected successfully.");
+    console.log("✅ Database synchronized.");
+
+    // Register all background jobs
+    await import("./src/jobs/index.js");
 
     app.listen(env.port, () => {
       console.log("🚀 Server started listening on port", env.port);

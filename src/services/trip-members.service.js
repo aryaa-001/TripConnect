@@ -3,6 +3,7 @@ import tripMemberRepository from "../repositories/trip-member.repository.js";
 import tripRepository from "../repositories/trip.repository.js";
 
 import { TRIP_MEMBER_ROLE, TRIP_MEMBER_STATUS } from "../constants/enum.js";
+import { toTripMemberResponse } from "../mappers/index.js";
 
 class TripMemberService {
   async getMembers(tripId) {
@@ -12,13 +13,16 @@ class TripMemberService {
       throw new AppError("Trip not found", 404);
     }
 
-    return await tripMemberRepository.findActiveMembersByTrip(tripId);
+    const tripMembers =
+      await tripMemberRepository.findActiveMembersByTrip(tripId);
+
+    return tripMembers.map(toTripMemberResponse);
   }
 
-  async getActiveTripMember(tripMemberId, tripId) {
+  async getActiveTripMember(tripId, tripMemberId) {
     const tripMember = await tripMemberRepository.findByIdAndTrip(
-      tripMemberId,
       tripId,
+      tripMemberId,
     );
 
     if (!tripMember) {
@@ -33,7 +37,7 @@ class TripMemberService {
   }
 
   async removeMember(tripId, tripMemberId, reviewer) {
-    const member = await this.getActiveTripMember(tripId, tripMemberId);
+    const member = await this.getActiveTripMember(tripMemberId, tripId);
 
     if (member.tripRole === TRIP_MEMBER_ROLE.ORGANIZER) {
       throw new AppError("Organizer cannot be removed", 403);
@@ -51,7 +55,12 @@ class TripMemberService {
     }
 
     member.status = TRIP_MEMBER_STATUS.REMOVED;
-    return await tripMemberRepository.update(member);
+
+    await tripMemberRepository.update(member);
+
+    const updatedMember = await tripMemberRepository.findDetailsById(member.id);
+
+    return toTripMemberResponse(updatedMember);
   }
 
   async leaveTrip(tripMember) {
@@ -68,11 +77,17 @@ class TripMemberService {
 
     tripMember.status = TRIP_MEMBER_STATUS.LEFT;
 
-    return await tripMemberRepository.update(tripMember);
+    await tripMemberRepository.update(tripMember);
+
+    const updatedMember = await tripMemberRepository.findDetailsById(
+      tripMember.id,
+    );
+
+    return toTripMemberResponse(updatedMember);
   }
 
   async promoteMember(tripId, tripMemberId) {
-    const member = await this.getActiveTripMember(tripMemberId, tripId);
+    const member = await this.getActiveTripMember(tripId, tripMemberId);
 
     if (member.tripRole === TRIP_MEMBER_ROLE.ORGANIZER) {
       throw new AppError("Organizer cannot be a moderator", 403);
@@ -84,14 +99,18 @@ class TripMemberService {
 
     member.tripRole = TRIP_MEMBER_ROLE.MODERATOR;
 
-    return await tripMemberRepository.update(member);
+    await tripMemberRepository.update(member);
+
+    const updatedMember = await tripMemberRepository.findDetailsById(member.id);
+
+    return toTripMemberResponse(updatedMember);
   }
 
   async demoteMember(tripId, tripMemberId) {
     const member = await this.getActiveTripMember(tripMemberId, tripId);
 
     if (member.tripRole === TRIP_MEMBER_ROLE.ORGANIZER) {
-      throw new AppError("Organizer can not be demoted", 403);
+      throw new AppError("Organizer cannot be demoted", 403);
     }
 
     if (member.tripRole === TRIP_MEMBER_ROLE.MEMBER) {
@@ -100,7 +119,11 @@ class TripMemberService {
 
     member.tripRole = TRIP_MEMBER_ROLE.MEMBER;
 
-    return await tripMemberRepository.update(member);
+    await tripMemberRepository.update(member);
+
+    const updatedMember = await tripMemberRepository.findDetailsById(member.id);
+
+    return toTripMemberResponse(updatedMember);
   }
 }
 

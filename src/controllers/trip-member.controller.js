@@ -1,12 +1,14 @@
 import tripMemberService from "../services/trip-members.service.js";
+import successResponse from "../utils/response.js";
 
 class TripMemberController {
   async getMembers(req, res) {
     const { id } = req.params;
+
     const members = await tripMemberService.getMembers(id);
 
-    return res.status(200).json({
-      success: true,
+    return successResponse(res, {
+      message: "Trip members fetched successfully",
       data: members,
     });
   }
@@ -20,8 +22,7 @@ class TripMemberController {
       req.tripMember,
     );
 
-    res.status(200).json({
-      success: true,
+    return successResponse(res, {
       message: "Member removed successfully",
       data: removedMember,
     });
@@ -30,8 +31,7 @@ class TripMemberController {
   async leaveTrip(req, res) {
     const leftMember = await tripMemberService.leaveTrip(req.tripMember);
 
-    return res.status(200).json({
-      success: true,
+    return successResponse(res, {
       message: "You have left the trip successfully",
       data: leftMember,
     });
@@ -45,8 +45,7 @@ class TripMemberController {
       tripMemberId,
     );
 
-    return res.status(200).json({
-      success: true,
+    return successResponse(res, {
       message: "Member has been promoted to moderator successfully",
       data: moderator,
     });
@@ -55,10 +54,12 @@ class TripMemberController {
   async demoteMember(req, res) {
     const { tripId, tripMemberId } = req.params;
 
-    const member = await tripMemberService.demoteMember(tripId, tripMemberId);
+    const member = await tripMemberService.demoteMember(
+      tripId,
+      tripMemberId,
+    );
 
-    res.status(200).json({
-      success: true,
+    return successResponse(res, {
       message: "Moderator has been demoted to member successfully",
       data: member,
     });

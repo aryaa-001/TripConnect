@@ -1,3 +1,4 @@
+import { Op } from "sequelize";
 import sequelize from "../config/db.js";
 import AppError from "../errors/AppError.js";
 
@@ -5,6 +6,11 @@ import tripRepository from "../repositories/trip.repository.js";
 import tripMemberRepository from "../repositories/trip-member.repository.js";
 
 import { TRIP_MEMBER_ROLE, TRIP_MEMBER_STATUS } from "../constants/enum.js";
+import { ALLOWED_ORDER, ALLOWED_SORT_FIELDS } from "../constants/trip.js";
+import {
+  toTripDetailsResponse,
+  toTripSummaryResponse,
+} from "../mappers/index.js";
 
 class TripService {
   async create(tripData, userId) {
@@ -34,7 +40,19 @@ class TripService {
 
       await transaction.commit();
 
-      return trip;
+      const createdTrip = await tripRepository.findDetailsById(trip.id);
+
+      const activeMembersCount = await tripMemberRepository.countActiveMembers(
+        trip.id,
+      );
+
+      const availableSeats = createdTrip.maxMembers - activeMembersCount;
+
+      return toTripDetailsResponse({
+        ...createdTrip.toJSON(),
+        activeMembersCount,
+        availableSeats,
+      });
     } catch (error) {
       await transaction.rollback();
       throw error;
@@ -51,9 +69,29 @@ class TripService {
     return trip;
   }
 
+  async getDetailsById(id) {
+    const trip = await tripRepository.findDetailsById(id);
+
+    if (!trip) {
+      throw new AppError("Trip not found", 404);
+    }
+
+    const activeMembersCount =
+      await tripMemberRepository.countActiveMembers(id);
+
+    const availableSeats = trip.maxMembers - activeMembersCount;
+
+    return toTripDetailsResponse({
+      ...trip.toJSON(),
+      activeMembersCount,
+      availableSeats,
+    });
+  }
+
   async getAllTrips(query) {
+    const where = {};
     const page = query.page === undefined ? 1 : Number(query.page);
-    const limit = query.limit === undefined ? 1 : Number(query.limit);
+    const limit = query.limit === undefined ? 10 : Number(query.limit);
 
     if (Number.isNaN(page)) {
       throw new AppError("Page must be a number", 400);
@@ -70,14 +108,80 @@ class TripService {
       throw new AppError("Limit must be greater than 0", 400);
     }
 
+    if (query.search) {
+      where[Op.or] = [
+        {
+          title: {
+            [Op.iLike]: `%${query.search}%`,
+          },
+        },
+      ];
+    }
+
+    if (query.departureCityId) {
+      where.departureCityId = query.departureCityId;
+    }
+
+    const { startDateFrom, startDateTo } = query;
+
+    if (startDateFrom && Number.isNaN(Date.parse(startDateFrom))) {
+      throw new AppError("Invalid startDateFrom", 400);
+    }
+
+    if (startDateTo && Number.isNaN(Date.parse(startDateTo))) {
+      throw new AppError("Invalid startDateTo", 400);
+    }
+
+    if (
+      startDateFrom &&
+      startDateTo &&
+      new Date(startDateFrom) > new Date(startDateTo)
+    ) {
+      throw new AppError("startDateFrom cannot be after startDateTo", 400);
+    }
+
+    if (startDateFrom && startDateTo) {
+      where.startDate = {
+        [Op.between]: [startDateFrom, startDateTo],
+      };
+    } else if (startDateFrom) {
+      where.startDate = {
+        [Op.gte]: startDateFrom,
+      };
+    } else if (startDateTo) {
+      where.startDate = {
+        [Op.lte]: startDateTo,
+      };
+    }
+
+    const { sort, order } = query;
+
+    if (sort && !ALLOWED_SORT_FIELDS.includes(sort)) {
+      throw new AppError("Invalid sort field", 400);
+    }
+
+    const sortOrder = order ? order.toUpperCase() : "DESC";
+
+    if (!ALLOWED_ORDER.includes(sortOrder)) {
+      throw new AppError("Invalid sort order", 400);
+    }
+
+    let sequelizeOrder;
+
+    sort
+      ? (sequelizeOrder = [[sort, sortOrder]])
+      : (sequelizeOrder = [["createdAt", "DESC"]]);
+
     const offset = (page - 1) * limit;
     const { rows, count } = await tripRepository.getAll({
       limit,
       offset,
+      where,
+      order: sequelizeOrder,
     });
 
     return {
-      trips: rows,
+      trips: rows.map(toTripSummaryResponse),
 
       pagination: {
         page,
@@ -96,6 +200,7 @@ class TripService {
     }
 
     const activeMembers = await tripMemberRepository.countActiveMembers(tripId);
+
     if (updateData.maxMembers && updateData.maxMembers < activeMembers) {
       throw new AppError(
         "Maximum members cannot be less than current active members",
@@ -137,7 +242,21 @@ class TripService {
 
     Object.assign(trip, updateData);
 
-    return await tripRepository.update(trip);
+    await tripRepository.update(trip);
+
+    const updatedTrip = await tripRepository.findDetailsById(trip.id);
+
+    const activeMembersCount = await tripMemberRepository.countActiveMembers(
+      trip.id,
+    );
+
+    const availableSeats = updatedTrip.maxMembers - activeMembersCount;
+
+    return toTripDetailsResponse({
+      ...updatedTrip.toJSON(),
+      activeMembersCount,
+      availableSeats,
+    });
   }
 }
 

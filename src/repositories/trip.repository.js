@@ -4,6 +4,8 @@ import {
   CITY_PUBLIC_ATTRIBUTES,
 } from "../constants/model-attributes.js";
 
+import { TRIP_MEMBER_STATUS } from "../constants/enum.js";
+
 class TripRepository {
   async create(tripData, options = {}) {
     return await Trip.create(tripData, options);
@@ -13,10 +15,27 @@ class TripRepository {
     return await Trip.findByPk(tripId);
   }
 
-  async getAll({ limit, offset } = {}) {
+  async findDetailsById(tripId) {
+    return await Trip.findByPk(tripId, {
+      include: [
+        {
+          association: "creator",
+          attributes: USER_PUBLIC_ATTRIBUTES,
+        },
+        {
+          association: "city",
+          attributes: CITY_PUBLIC_ATTRIBUTES,
+        },
+      ],
+    });
+  }
+
+  async getAll({ limit, offset, where, order } = {}) {
     return await Trip.findAndCountAll({
       limit,
       offset,
+      where,
+      order,
 
       include: [
         {
@@ -28,7 +47,26 @@ class TripRepository {
           attributes: CITY_PUBLIC_ATTRIBUTES,
         },
       ],
-      order: [["createdAt", "DESC"]],
+    });
+  }
+
+  async getAllForLifecycle() {
+    return await Trip.findAll({
+      include: [
+        {
+          association: "members",
+          where: {
+            status: TRIP_MEMBER_STATUS.ACTIVE,
+          },
+          required: false,
+        },
+      ],
+    });
+  }
+
+  async updateLifecycle(id, data) {
+    return await Trip.update(data, {
+      where: { id },
     });
   }
 

@@ -1,8 +1,9 @@
 import joinRequestService from "../services/join-request.service.js";
+import successResponse from "../utils/response.js";
 
 class JoinRequestController {
   async create(req, res) {
-    const { tripId } = req.params;
+    const tripId  = req.params.id;
     const { message } = req.body;
 
     const joinRequest = await joinRequestService.requestToJoin(
@@ -11,9 +12,9 @@ class JoinRequestController {
       message,
     );
 
-    return res.status(201).json({
-      success: true,
-      message: "Join requests submitted successully",
+    return successResponse(res, {
+      status: 201,
+      message: "Join request submitted successfully",
       data: joinRequest,
     });
   }
@@ -23,8 +24,8 @@ class JoinRequestController {
 
     const requests = await joinRequestService.getPendingRequests(tripId);
 
-    return res.status(200).json({
-      success: true,
+    return successResponse(res, {
+      message: "Pending join requests fetched successfully",
       data: requests,
     });
   }
@@ -35,8 +36,7 @@ class JoinRequestController {
       req.user.id,
     );
 
-    return res.status(200).json({
-      success: true,
+    return successResponse(res, {
       message: "Join request approved successfully",
       data: joinRequest,
     });
@@ -51,23 +51,21 @@ class JoinRequestController {
       responseMessage,
     );
 
-    return res.status(200).json({
-      success: true,
+    return successResponse(res, {
       message: "Join request rejected successfully",
       data: joinRequest,
     });
   }
 
   async cancel(req, res) {
-    const joinRequestId = req.params;
+    const joinRequestId = req.params.id;
 
     const joinRequest = await joinRequestService.cancel(
       joinRequestId,
       req.user.id,
     );
 
-    return res.status(200).json({
-      success: true,
+    return successResponse(res, {
       message: "Join request cancelled successfully",
       data: joinRequest,
     });

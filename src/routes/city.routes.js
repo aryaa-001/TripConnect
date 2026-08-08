@@ -20,7 +20,7 @@ router.get(
   "/",
   authenicate,
   platformAuthorize(USER_ROLE.ADMIN),
-  cityController.getALl,
+  cityController.getAll,
 );
 
 export default router;

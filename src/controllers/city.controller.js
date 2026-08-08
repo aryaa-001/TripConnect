@@ -1,21 +1,22 @@
 import cityService from "../services/city.service.js";
+import successResponse from "../utils/response.js";
 
 class CityController {
   async create(req, res) {
     const city = await cityService.create(req.body);
 
-    return res.status(201).json({
-      success: true,
+    return successResponse(res, {
+      status: 201,
       message: "City created successfully",
       data: city,
     });
   }
 
-  async getALl(req, res) {
+  async getAll(req, res) {
     const cities = await cityService.getAllCities();
 
-    return res.status(200).json({
-      success: true,
+    return successResponse(res, {
+      message: "Cities fetched successfully",
       data: cities,
     });
   }

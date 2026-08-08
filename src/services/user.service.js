@@ -3,6 +3,7 @@ import userRepository from "../repositories/user.repository.js";
 import { hashPassword, comparePassword } from "../security/password.js";
 import { generateToken } from "../security/jwt.js";
 import { USER_ROLE } from "../constants/enum.js";
+import { toUserAccountResponse } from "../mappers/index.js";
 
 class UserService {
   async register(data) {
@@ -48,7 +49,7 @@ class UserService {
     };
 
     const user = await userRepository.create(userData);
-    return user.toSafeObject();
+    return toUserAccountResponse(user);
   }
 
   async login(data) {
@@ -73,7 +74,7 @@ class UserService {
     const accessToken = generateToken({ userId: user.id });
     return {
       accessToken,
-      user: user.toSafeObject(),
+      user: toUserAccountResponse(user),
     };
   }
 }

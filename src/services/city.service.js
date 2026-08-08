@@ -1,5 +1,6 @@
-import cityRepository from "../repositories/city.repository.js";
 import AppError from "../errors/AppError.js";
+import cityRepository from "../repositories/city.repository.js";
+import { toCityResponse } from "../mappers/index.js";
 
 class CityService {
   async create(data) {
@@ -7,17 +8,14 @@ class CityService {
     if (isExisting) {
       throw new AppError("City already exist", 409);
     }
-    return await cityRepository.create(data);
+    const city = await cityRepository.create(data);
+    return toCityResponse(city);
   }
 
-  async getAllCities(id) {
+  async getAllCities() {
     const cities = await cityRepository.findAll();
 
-    if (!cities) {
-      throw new AppError("Cities not found", 404);
-    }
-
-    return city;
+    return cities.map(toCityResponse);
   }
 }
 

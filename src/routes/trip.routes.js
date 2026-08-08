@@ -5,7 +5,7 @@ import platformAuthorize from "../middlewares/authorization/platform-authorize.m
 import tripAuthorize from "../middlewares/authorization/trip-authorize.middleware.js";
 import joinRequestAuthorize from "../middlewares/authorization/join-request-authorize.middleware.js";
 
-import tripController from "../controllers/trip.controlle.js";
+import tripController from "../controllers/trip.controller.js";
 import joinRequestController from "../controllers/join-request.controller.js";
 import {
   createTripValidator,
@@ -25,7 +25,6 @@ const router = Router();
 router.get(
   "/",
   authenticate,
-  platformAuthorize(USER_ROLE.ADMIN),
   tripController.getAllTrips,
 );
 
@@ -36,7 +35,12 @@ router.post(
   tripController.create,
 );
 
-router.get("/:id", authenticate, globalUuidValidator, tripController.getById);
+router.get(
+  "/:id",
+  authenticate,
+  globalUuidValidator,
+  tripController.getDetailsById,
+);
 
 //Update trip info using trip Id
 router.patch(
